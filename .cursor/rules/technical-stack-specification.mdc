@@ -1,0 +1,435 @@
+---
+description: Document to know about the technical stack that will be used in the project.
+globs: 
+alwaysApply: false
+---
+# Technical Stack Specification
+# Political Social Media Analysis Platform
+
+## Document History
+| Version | Date | Author | Description |
+|---------|------|--------|-------------|
+| 1.1 | March 12, 2025 | | Updated Tech Stack with APIFY Integration |
+
+## Overview
+This document outlines the comprehensive technology stack for implementing the Political Social Media Analysis Platform as defined in the accompanying PRD. The stack is designed to support all core features while optimizing for performance, scalability, and maintainability.
+
+## Architecture Overview
+
+The platform will follow a modern microservices architecture with the following components:
+
+1. Data Collection Services (using APIFY actors)
+2. Data Processing Pipeline
+3. Analytics Engine
+4. RAG-Enhanced AI Chat System
+5. Frontend Application
+6. Infrastructure & DevOps
+
+## Database Architecture
+
+A hybrid database approach will be implemented to optimize for different data access patterns:
+
+### PostgreSQL (Relational Database)
+- **Primary Uses**:
+  - User accounts and authentication
+  - Political entity profiles and metadata
+  - Relationship data between political entities
+  - Campaign configuration and metadata
+  - Analysis settings and configurations
+  - Access control and permissions
+  - Scheduled reports and alerts configuration
+
+- **Benefits for this Project**:
+  - Strong data integrity for critical relationship mapping
+  - Efficient complex joins for analytics queries
+  - Transaction support for data consistency
+  - Mature ecosystem with PostgreSQL extensions
+
+### MongoDB (Document Database)
+- **Primary Uses**:
+  - Raw social media posts with varying structures
+  - Comments and engagement data
+  - Platform-specific metadata
+  - Media content references
+  - Scraping job history and logs
+
+- **Benefits for this Project**:
+  - Flexible schema for varied social media content
+  - Efficient storage for large volumes of unstructured data
+  - Built-in geospatial capabilities for location analysis
+  - Horizontal scaling for growing data volume
+
+### Vector Database (Pinecone/Milvus)
+- **Primary Uses**:
+  - Text embeddings for RAG system
+  - Semantic search capabilities
+  - Content similarity vectors
+
+- **Benefits for this Project**:
+  - Optimized for embedding storage and retrieval
+  - Efficient similarity search for RAG capabilities
+  - Specialized for AI-driven insights
+
+## Backend Technology Stack
+
+### Core Framework
+- **FastAPI**
+  - High-performance Python web framework
+  - Native async support for concurrent tasks
+  - Automatic OpenAPI documentation
+  - Type validation with Pydantic
+
+### Database Access
+- **SQLModel**: ORM for PostgreSQL access
+- **Motor**: Async MongoDB driver
+- **Langchain/LlamaIndex**: For vector database integration
+
+### Authentication & Security
+- **JWT**: For token-based authentication
+- **Passlib**: For password hashing
+- **Python-jose**: For JWT handling
+
+### Task Processing & Scheduling
+- **Celery**: For background task processing
+- **Redis**: For task queue and caching
+- **APScheduler**: For scheduled data collection jobs
+
+### Data Processing & ML
+- **Hugging Face Transformers**: NLP models, focusing on Spanish language support
+- **spaCy**: For entity recognition (with Spanish models)
+- **PyTorch**: For custom ML model training
+- **Pandas/NumPy**: For data manipulation
+
+### AI & RAG Components
+- **LangChain/LlamaIndex**: For RAG pipeline architecture
+- **OpenAI API or LlamaCPP**: For LLM integration
+- **Sentence-Transformers**: For generating embeddings (with Spanish-optimized models)
+
+### Social Media Data Collection
+- **APIFY Platform**:
+  - Instagram Scraper Actor
+  - Facebook Scraper Actor
+  - Twitter/X Scraper Actor
+  - TikTok Scraper Actor
+- **APIFY SDK**: For custom actor development and integration
+- **APIFY Client**: For managing APIFY actors and tasks programmatically
+- **APIFY Proxy**: For IP rotation and avoiding rate limits
+
+### API Clients
+- **HTTPX**: Async HTTP client for API integration
+- **APIFY Client SDK**: For programmatic APIFY platform access
+
+## Frontend Technology Stack
+
+### Core Framework
+- **React**: UI library
+- **TypeScript**: For type safety
+- **Vite**: Build tool and dev server
+
+### State Management & Data Fetching
+- **TanStack Query**: For API data fetching and caching
+- **TanStack Router**: For routing
+- **Zustand**: For global state management
+
+### UI Components
+- **Chakra UI**: Component library for consistent styling
+- **Tailwind CSS**: Utility-first CSS framework
+
+### Visualization
+- **D3.js**: For custom visualizations
+- **Recharts**: For standard charts and graphs
+- **Cytoscape.js**: For relationship network visualization
+- **react-map-gl**: For geographic data visualization
+
+### AI Chat Interface
+- **Stream-capable chat UI component**
+- **Markdown rendering for responses**
+
+## Infrastructure & DevOps
+
+### Containerization & Orchestration
+- **Docker**: For containerization
+- **Kubernetes**: For orchestration and scaling
+- **Helm**: For Kubernetes package management
+
+### CI/CD
+- **GitHub Actions/GitLab CI**: For automated testing and deployment
+- **ArgoCD**: For GitOps-based deployment
+
+### Monitoring & Logging
+- **Prometheus**: For metrics collection
+- **Grafana**: For metrics visualization
+- **ELK Stack**: For centralized logging
+- **Sentry**: For error tracking
+
+### Storage
+- **S3-compatible storage**: For media and backup storage
+- **Redis**: For caching and session storage
+
+### Hosting & Environment
+- **Cloud provider**: AWS/GCP/Azure (to be determined)
+- **Managed database services** for production environments
+
+## Integration Model
+
+### Cross-Database Integration
+The hybrid database architecture will be integrated as follows:
+
+1. **Cross-Database References**:
+   - MongoDB documents will include PostgreSQL entity IDs
+   - PostgreSQL tables will reference MongoDB ObjectIDs when needed
+   - Vector database will maintain metadata references to both sources
+
+2. **Data Synchronization**:
+   - Event-driven updates to ensure cross-database consistency
+   - Background processes to keep derived data updated
+
+3. **Query Patterns**:
+   - Entity relationship queries: PostgreSQL
+   - Content retrieval: MongoDB
+   - Semantic search: Vector database
+   - Complex analytics: Application layer combining multiple sources
+
+## APIFY Integration Architecture
+
+### APIFY Actor Integration
+
+The platform will leverage APIFY's ready-made actors for social media data collection, with the following integration architecture:
+
+1. **Actor Selection and Configuration**:
+   - Instagram Actor: For collecting posts, stories, comments, and profile data
+   - Facebook Actor: For collecting page posts, comments, and engagement metrics
+   - Twitter/X Actor: For collecting tweets, replies, and engagement data
+   - TikTok Actor: For collecting videos, comments, and engagement stats
+
+2. **APIFY Task Orchestration**:
+   - Scheduled runs via the APIFY platform
+   - Programmatic execution via the APIFY Client
+   - Custom start URLs for targeted political entity accounts
+   - Configurable data collection depth and parameters
+
+3. **Data Processing Flow**:
+   - Raw data collection by APIFY actors
+   - Webhook notifications on job completion
+   - ETL processing to normalize data structure
+   - Storage in MongoDB collections
+   - Reference creation to PostgreSQL entities
+
+4. **Rate Limit and Error Handling**:
+   - APIFY Proxy for IP rotation
+   - Automatic retries for failed requests
+   - Configurable concurrency settings
+   - Error reporting and alerting
+
+5. **Custom Actor Development**:
+   - Extension of existing actors for political-specific metadata
+   - Custom post-processing for entity extraction
+   - Platform-specific enhancements as needed
+
+### APIFY Integration Advantages
+
+1. **Maintainability**:
+   - Reduced development time for scraping logic
+   - Automatic handling of platform changes by APIFY team
+   - Focus development resources on analytics rather than data collection
+
+2. **Scalability**:
+   - Built-in scaling through APIFY platform
+   - Proxy management for high-volume collection
+   - Parallel execution of multiple actors
+
+3. **Reliability**:
+   - Professional maintenance of scraping code
+   - Regular updates to handle platform changes
+   - Multiple fallback mechanisms
+
+4. **Compliance**:
+   - Configurable throttling to respect platform terms
+   - Better anonymization through proxy rotation
+   - Reduced risk of IP blocking
+
+### Database Schema Examples
+
+#### PostgreSQL Political Entity Schema
+```sql
+CREATE TABLE political_entities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    bio TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE entity_relationships (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_id_1 UUID NOT NULL REFERENCES political_entities(id),
+    entity_id_2 UUID NOT NULL REFERENCES political_entities(id),
+    relationship_type VARCHAR(50) NOT NULL,
+    relationship_strength NUMERIC(3,2),
+    start_date TIMESTAMP WITH TIME ZONE,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(entity_id_1, entity_id_2)
+);
+
+CREATE TABLE entity_social_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_id UUID NOT NULL REFERENCES political_entities(id),
+    platform VARCHAR(50) NOT NULL,
+    username VARCHAR(100) NOT NULL,
+    account_url TEXT NOT NULL,
+    last_scraped_at TIMESTAMP WITH TIME ZONE,
+    apify_actor_id VARCHAR(50),
+    apify_task_id VARCHAR(50),
+    UNIQUE(entity_id, platform)
+);
+```
+
+#### MongoDB Post Schema
+```javascript
+{
+  "_id": ObjectId,
+  "platform": "instagram",
+  "political_entity_id": "uuid-from-postgresql",
+  "post_id": "platform-specific-id",
+  "apify_run_id": "id-of-apify-run",
+  "content": {
+    "text": "Post content here",
+    "media": ["url1", "url2"]
+  },
+  "metadata": {
+    "posted_at": ISODate,
+    "location": {
+      "type": "Point",
+      "coordinates": [lng, lat]
+    }
+  },
+  "engagement": {
+    "likes": 1500,
+    "shares": 350,
+    "comments_count": 275
+  },
+  "processed": {
+    "topics": ["economy", "healthcare"],
+    "sentiment_score": 0.75,
+    "entities_mentioned": ["uuid-of-other-entity"]
+  }
+}
+```
+
+## RAG System Architecture
+
+The Retrieval-Augmented Generation (RAG) system will be implemented as follows:
+
+### Document Processing Pipeline
+1. Extract text from:
+   - Political entity posts
+   - Comments and replies
+   - Analysis results
+2. Process with language-specific tokenizers (prioritizing Spanish)
+3. Generate embeddings using models optimized for Spanish
+4. Store in vector database with metadata pointers to source records
+
+### Query Processing Flow
+1. User submits question via AI chat interface
+2. Question is converted to embedding vector
+3. Vector similarity search retrieves relevant contexts
+4. Structured data from PostgreSQL augments the context
+5. Combined context and question sent to LLM
+6. Response generated and streamed to user
+
+### Integration with Core Systems
+- Background jobs update vector database when new content is scraped
+- References maintained between vector embeddings and source records
+- Feedback loop to improve retrieval accuracy based on user interactions
+
+## Scalability Considerations
+
+The architecture is designed to scale with increasing data volume and user load:
+
+### Horizontal Scaling
+- APIFY actors scaled automatically based on collection needs
+- Analysis workers scaled based on processing backlog
+- Read replicas for PostgreSQL to handle analytics queries
+
+### Data Volume Management
+- Time-based partitioning for historical data
+- Aggregation strategies for older content
+- Tiered storage approach based on access frequency
+
+### Performance Optimization
+- Redis caching for frequently accessed data
+- Pre-computation of common analytics
+- Optimized database indexing strategy
+
+## Technology Selection Rationale
+
+The selected technologies were chosen based on:
+
+1. **Feature Requirements**
+   - Complex relationship mapping → PostgreSQL
+   - Varied social media formats → MongoDB
+   - AI chat capabilities → Vector database + LLM
+   - Reliable social media scraping → APIFY actors
+
+2. **Scale Requirements**
+   - High volume of social media data
+   - Complex analytical queries
+   - Real-time monitoring and alerts
+
+3. **Technical Constraints**
+   - Spanish language processing requirements
+   - Real-time performance needs
+   - Database transaction requirements
+   - Social media platform changes and anti-scraping measures
+
+4. **Team Expertise and Supportability**
+   - Common, well-documented technologies
+   - Strong community support
+   - Available development resources
+   - Reduced maintenance burden for scraping logic
+
+## Implementation Phases
+
+The technology implementation will align with the PRD phases:
+
+### Phase 1: Foundation
+- PostgreSQL schema for entities and relationships
+- MongoDB collection design for social media content
+- APIFY actor configuration for primary platforms
+- APIFY integration service development
+- MVP frontend with core visualizations
+
+### Phase 2: Analysis Capabilities
+- NLP pipeline for Spanish language processing
+- Sentiment analysis implementation
+- Topic modeling integration
+- Enhanced visualizations
+
+### Phase 3: Advanced Features
+- Vector database integration
+- RAG system implementation
+- Relationship mapping visualizations
+- Real-time monitoring system
+
+### Phase 4: Refinement
+- Performance optimization
+- Scale testing and improvements
+- Enhanced security measures
+- Final UI/UX refinements
+
+## Security Considerations
+
+- Database encryption at rest
+- Secure API authentication
+- HTTPS enforcement
+- Regular security audits
+- Role-based access control
+- Audit logging for system actions
+- Secure APIFY credentials management
+
+## Conclusion
+
+This technical stack specification provides the blueprint for implementing the Political Social Media Analysis Platform. The hybrid database approach combined with APIFY actors for data collection offers an optimal balance of relational integrity, document flexibility, and vector search capabilities to support all the features defined in the PRD.
+
+The technology choices prioritize performance, scalability, and maintainability while addressing the unique requirements of political social media analysis, including Spanish language support and complex relationship tracking. The use of APIFY actors significantly reduces development and maintenance overhead for the critical data collection components, allowing the team to focus on analytics and insights.

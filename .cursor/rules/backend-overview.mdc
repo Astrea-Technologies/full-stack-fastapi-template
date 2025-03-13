@@ -16,6 +16,9 @@ This is a FastAPI backend project structured with SQLModel for database models, 
 - **uv**: For Python package and environment management
 - **Alembic**: For database migrations
 - **Docker**: For containerization
+- **Pydantic**: For data validation
+- **Pytest**: For testing
+- **Sentry**: For error tracking
 
 ## Project Structure Rules
 
@@ -26,39 +29,54 @@ This is a FastAPI backend project structured with SQLModel for database models, 
   - **db.py**: Database engine and initialization
 
 ### Models
-- **/app/models.py**: All data models are defined using SQLModel
+- **/app/models/**: All data models are organized by type
+  - **/app/models/sql/**: SQL database models using SQLModel
+  - **/app/models/nosql/**: NoSQL data models
   - Models use UUID fields as primary keys 
   - Relationships are defined with cascading delete behavior
-  - Models include clear separation between base, public, and internal models
+- **/app/models.py**: Legacy model definitions (being migrated to the models directory)
+
+### Database
+- **/app/db/**: Database-related code and utilities
+  - **/app/db/models/**: Database model implementations
 
 ### API Structure
 - **/app/api/**: API route definitions and dependencies
   - **/api/routes/**: Organized by resource (users, items, login, etc.)
+  - **/api/api_v1/**: API version 1 specific endpoints
   - **/api/deps.py**: Dependency injection for routes
+  - **/api/main.py**: API router initialization
+
+### Schemas
+- **/app/schemas/**: Pydantic models for request/response validation
+
+### Services
+- **/app/services/**: Business logic separated from routes
+
+### Utilities
+- **/app/utils/**: Utility functions and helpers
+- **/app/utils.py**: Legacy utility functions (being migrated to utils directory)
 
 ### Authentication
 - JWT-based authentication is implemented
-- Access tokens expire after configurable time (8 days default)
+- Access tokens expire after configurable time
 - Password recovery flow is supported
 
-### Database
+### Database Migration
+- **/app/alembic/**: Alembic migrations
+  - **/alembic/versions/**: Migration version files
 - Models are managed via Alembic migrations
-- UUIDs are used for all IDs (migrated from integers)
+- UUIDs are used for all IDs
 - String fields have explicit max lengths
-
-### Environment
-- Environment variables are loaded from .env file
-- Development vs production environment settings
-- CORS settings for frontend communication
 
 ### Email Templates
 - Located in **/app/email-templates/**
-- Built from MJML source files to HTML
+- Used for password recovery and notifications
 
 ## Development Rules
 
 ### Code Patterns
-- Use type annotations throughout
+- Use type annotations throughout (mypy for type checking)
 - Follow REST principles for API endpoints
 - Use dependency injection via FastAPI
 - Use SQLModel for database operations 
@@ -69,13 +87,19 @@ This is a FastAPI backend project structured with SQLModel for database models, 
 - Tests use pytest fixtures for database and client
 - Mock external services in tests
 
+### Code Quality
+- Uses ruff for linting with specific rule selections
+  - Enforces PEP8, PyFlakes, isort, and other standards
+- pre-commit hooks for code quality assurance
+- Strict mypy type checking
+
 ### Docker Setup
 - Use Docker Compose for local development
 - FastAPI run with live reloading during development
 - PostgreSQL database runs in a container
 
 ## API Response Standards
-- Consistent response objects for collections (with count and data fields)
+- Consistent response objects for collections
 - Use of standard message response objects
 - Proper error handling with appropriate status codes
 
@@ -84,3 +108,4 @@ This is a FastAPI backend project structured with SQLModel for database models, 
 - JWT token-based authentication
 - Environment-specific secrets management
 - CORS configuration for frontend access
+- Sentry integration for error tracking

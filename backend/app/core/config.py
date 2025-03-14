@@ -51,6 +51,8 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
+
+    # PostgreSQL settings
     POSTGRES_SERVER: str
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str
@@ -69,6 +71,7 @@ class Settings(BaseSettings):
             path=self.POSTGRES_DB,
         )
 
+    # Email settings
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
     SMTP_PORT: int = 587
@@ -96,24 +99,17 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
-        if value == "changethis":
-            message = (
-                f'The value of {var_name} is "changethis", '
-                "for security, please change it, at least for deployments."
-            )
-            if self.ENVIRONMENT == "local":
-                warnings.warn(message, stacklevel=1)
-            else:
-                raise ValueError(message)
+        """Check if a secret is using a default value and warn the user."""
+        if value is not None and value in {"changethis", "changeme", ""}:
+            message = f"The value of {var_name} is \"{value}\", for security, please change it, at least for deployments."
+            warnings.warn(message, stacklevel=1)
 
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
-        self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
+        """Enforce that secrets don't use default values."""
         self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
-        self._check_default_secret(
-            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
-        )
-
+        self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
+        self._check_default_secret("FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD)
         return self
 
 

@@ -1,8 +1,3 @@
----
-description: General description of the backend used in the repository. Use this to have more context on the /backend structure.
-globs: backend/*, *.py
-alwaysApply: false
----
 # FastAPI Backend Template - Overview
 
 ## Project Architecture
@@ -99,4 +94,4 @@ For errors:
 - Comprehensive type annotations throughout
 - Clear docstrings on public functions and classes
 - Consistent error handling
-- Centralized dependency management with uv
+- Centralized dependency management with uv 

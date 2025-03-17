@@ -1,7 +1,7 @@
 from sqlmodel import Session, create_engine, select
 
 # Updated import to match new architecture
-from app.services.repositories import user as user_repository
+from app.services import user as user_service
 from app.core.config import settings
 # Updated model imports
 from app.db.models.user import User
@@ -34,4 +34,4 @@ def init_db(session: Session) -> None:
             is_superuser=True,
         )
         # Updated to use the new repository pattern
-        user = user_repository.create_user(session=session, user_create=user_in)
+        user = user_service.create_user(session=session, obj_in=user_in)

@@ -12,7 +12,7 @@ from typing import AsyncGenerator, Optional
 from functools import lru_cache
 
 import motor.motor_asyncio
-import pinecone
+from pinecone import Pinecone, Index
 import redis.asyncio as redis
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -47,7 +47,7 @@ class MongoDBConnection:
 
     async def _create_indexes(self) -> None:
         """Create indexes for common queries."""
-        if not self._db:
+        if self._db is None:
             return
 
         # Posts collection indexes
@@ -62,20 +62,20 @@ class MongoDBConnection:
     @property
     def db(self) -> motor.motor_asyncio.AsyncIOMotorDatabase:
         """Get the database instance."""
-        if not self._db:
+        if self._db is None:
             raise ConnectionError("MongoDB connection not initialized")
         return self._db
 
     @property
     def client(self) -> motor.motor_asyncio.AsyncIOMotorClient:
         """Get the client instance."""
-        if not self._client:
+        if self._client is None:
             raise ConnectionError("MongoDB client not initialized")
         return self._client
 
     async def close(self) -> None:
         """Close the MongoDB connection."""
-        if self._client:
+        if self._client is not None:
             self._client.close()
             self._client = None
             self._db = None
@@ -104,13 +104,13 @@ class RedisConnection:
     @property
     def client(self) -> redis.Redis:
         """Get the Redis client instance."""
-        if not self._client:
+        if self._client is None:
             raise ConnectionError("Redis connection not initialized")
         return self._client
 
     async def close(self) -> None:
         """Close the Redis connection."""
-        if self._client:
+        if self._client is not None:
             await self._client.close()
             self._client = None
 
@@ -120,41 +120,41 @@ class PineconeConnection:
     
     def __init__(self) -> None:
         """Initialize Pinecone connection manager."""
-        self._index = None
+        self._client: Optional[Pinecone] = None
+        self._index: Optional[Index] = None
 
     def connect(self) -> None:
         """Initialize Pinecone connection and ensure index exists."""
         try:
-            # Initialize Pinecone
-            pinecone.init(
-                api_key=settings.PINECONE_API_KEY,
-                environment=settings.PINECONE_ENVIRONMENT
-            )
+            # Initialize Pinecone client
+            self._client = Pinecone(api_key=settings.PINECONE_API_KEY)
             
             # Create index if it doesn't exist
-            if settings.PINECONE_INDEX_NAME not in pinecone.list_indexes():
-                pinecone.create_index(
+            if settings.PINECONE_INDEX_NAME not in self._client.list_indexes().names():
+                self._client.create_index(
                     name=settings.PINECONE_INDEX_NAME,
                     dimension=384,  # Dimension for all-MiniLM-L6-v2 embeddings
                     metric="cosine"
                 )
             
-            self._index = pinecone.Index(settings.PINECONE_INDEX_NAME)
+            # Get the index
+            self._index = self._client.Index(settings.PINECONE_INDEX_NAME)
         except Exception as e:
             raise ConnectionError(f"Failed to initialize Pinecone: {e}")
 
     @property
-    def index(self) -> pinecone.Index:
+    def index(self) -> Index:
         """Get the Pinecone index instance."""
-        if not self._index:
+        if self._index is None:
             raise ConnectionError("Pinecone connection not initialized")
         return self._index
 
     def close(self) -> None:
         """Clean up Pinecone resources."""
-        if self._index:
+        if self._index is not None:
             self._index = None
-            pinecone.deinit()
+        if self._client is not None:
+            self._client = None
 
 
 # Singleton instances
@@ -166,7 +166,7 @@ pinecone_conn = PineconeConnection()
 @asynccontextmanager
 async def get_mongodb() -> AsyncGenerator[motor.motor_asyncio.AsyncIOMotorDatabase, None]:
     """Async context manager for getting MongoDB database instance."""
-    if not mongodb._client:
+    if mongodb._client is None:
         await mongodb.connect()
     try:
         yield mongodb.db
@@ -177,7 +177,7 @@ async def get_mongodb() -> AsyncGenerator[motor.motor_asyncio.AsyncIOMotorDataba
 @asynccontextmanager
 async def get_redis() -> AsyncGenerator[redis.Redis, None]:
     """Async context manager for getting Redis client instance."""
-    if not redis_conn._client:
+    if redis_conn._client is None:
         await redis_conn.connect()
     try:
         yield redis_conn.client
@@ -186,9 +186,9 @@ async def get_redis() -> AsyncGenerator[redis.Redis, None]:
 
 
 @lru_cache()
-def get_pinecone() -> pinecone.Index:
+def get_pinecone() -> Index:
     """Get Pinecone index instance with caching."""
-    if not pinecone_conn._index:
+    if pinecone_conn._index is None:
         pinecone_conn.connect()
     return pinecone_conn.index
 

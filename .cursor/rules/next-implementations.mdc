@@ -3,109 +3,265 @@ description: Next Implementations
 globs: 
 alwaysApply: false
 ---
-# Concise Implementation Plan for Hybrid Database Architecture
+# Backend Implementation Plan: Political Social Media Analysis Platform
+
+This implementation plan addresses the gap between the specified technical stack in the documentation and the current implementation. The plan follows a phased approach focusing on implementing the hybrid database architecture and data processing capabilities.
 
 ## Phase 1: Environment and Dependency Setup
 
-1. **Update requirements.txt**
-   - Add MongoDB drivers: `motor`, `pymongo`
-   - Add Redis client: `redis`
-   - Add Pinecone: `pinecone-client`
-   - Add task processing: `celery`, `kafka-python`
-   - Add ML/NLP: `spacy`, `transformers`, `sentence-transformers`
+### Task 1.1: Update requirements.txt
+Add the following dependencies to the project:
 
-2. **Update Docker environment**
-   - Modify Dockerfile to install dependencies
-   - Add services to docker-compose:
-     - MongoDB, Redis, RabbitMQ, Kafka
-     - Worker service for Celery tasks
+- **Database Clients**
+  - `motor>=3.1.1` - MongoDB async driver
+  - `pymongo>=4.3.3` - MongoDB sync driver
+  - `redis>=4.5.4` - Redis client
+  - `pinecone-client>=2.2.1` - Vector database client
 
-3. **Create configuration**
-   - Update `config.py` with connection settings for all databases
-   - Create connection utilities for MongoDB and Redis
+- **Task Processing**
+  - `celery>=5.3.0` - Task queue
+  - `kafka-python>=2.0.2` - Kafka client
+  - `pika>=1.3.1` - RabbitMQ client
 
-## Phase 2: Database Models Implementation
+- **ML/NLP**
+  - `spacy>=3.6.0` - NLP processing
+  - `transformers>=4.28.0` - Hugging Face transformers
+  - `sentence-transformers>=2.2.2` - Text embeddings
+  - `scikit-learn>=1.2.0` - ML utilities
+  - `torch>=2.0.0` - Deep learning
 
-1. **PostgreSQL Models**
-   - Create `PoliticalEntity`, `SocialMediaAccount`, `EntityRelationship`
-   - Set up UUID primary keys and relationships
-   - Create Pydantic schemas for API
+### Task 1.2: Update Docker Configuration
+Add the following services to docker-compose.yml:
+- MongoDB (version 6.0+)
+- Redis (version 7.0+)
+- RabbitMQ (version 3.12+)
+- Apache Kafka (version 3.4+)
+- Celery worker and beat services
 
-2. **MongoDB Documents**
-   - Define schemas for social media posts and comments
-   - Set up indexing strategy
-   - Create initialization script
+### Task 1.3: Update Configuration Module
+Extend the application configuration to include settings for:
+- MongoDB connection parameters
+- Redis connection parameters
+- Pinecone API credentials
+- Celery broker and backend URLs
+- Kafka bootstrap servers
+- NLP model settings
 
-3. **Redis Data Structures**
-   - Define key patterns for metrics, trending data, and activity streams
-   - Create cache invalidation strategy
+## Phase 2: Database Infrastructure Implementation
 
-## Phase 3: Repository Layer Implementation
+### Task 2.1: Create Database Connection Utilities
+Create connection modules for:
+- MongoDB async client
+- Redis async client
+- Pinecone vector database client
 
-1. **Implement PostgreSQL Repositories**
-   - `PoliticalEntityRepository` with CRUD operations
-   - `EntityRelationshipRepository` for relationship management
+### Task 2.2: Implement Database Startup and Shutdown Events
+Update the FastAPI application to:
+- Connect to all databases on startup
+- Close all connections on shutdown
 
-2. **Implement MongoDB Repositories**
-   - `PostRepository` for social media content
-   - `CommentRepository` for user comments
-   - Implement cross-database reference patterns
+### Task 2.3: Create SQL Database Models
+Implement SQLModel classes for:
+- PoliticalEntity
+- SocialMediaAccount
+- EntityRelationship
 
-3. **Implement Redis Service**
-   - Methods for caching frequent data
-   - Real-time counters and metrics
-   - Activity streams and trending topic tracking
+### Task 2.4: Create MongoDB Document Schemas
+Create Pydantic models for MongoDB collections:
+- SocialMediaPost
+- SocialMediaComment
+- MetricsAggregation
+- TopicAnalysis
 
-4. **Implement Vector Database Service**
-   - Connect to Pinecone
-   - Vector embedding generation
-   - Similarity search functionality
+### Task 2.5: Redis Data Structure Definitions
+Define Redis key patterns and data structures for:
+- Entity metrics caching
+- Trending topics tracking
+- Activity streams
+- Real-time alerts
+
+## Phase 3: Repository and Service Layer Implementation
+
+### Task 3.1: Implement PostgreSQL Repositories
+Create repositories for SQL models:
+- PoliticalEntityRepository
+- SocialMediaAccountRepository
+- EntityRelationshipRepository
+
+### Task 3.2: Implement MongoDB Repositories
+Create repositories for MongoDB collections:
+- PostRepository
+- CommentRepository
+- MetricsRepository
+- TopicRepository
+
+### Task 3.3: Implement Redis Service
+Create service for Redis operations:
+- CacheService - for general caching
+- MetricsService - for real-time metrics
+- ActivityService - for activity streams
+
+### Task 3.4: Implement Vector Database Service
+Create service for vector database operations:
+- VectorEmbeddingService - for creating and managing embeddings
+- SimilaritySearchService - for semantic search operations
 
 ## Phase 4: Task Processing Implementation
 
-1. **Set up Celery**
-   - Configure worker and task queues
-   - Set up task routing based on priority
+### Task 4.1: Set up Celery Infrastructure
+Create core Celery configuration:
+- Worker setup with queues
+- Task routing configuration
+- Beat scheduling for periodic tasks
 
-2. **Create Core Tasks**
-   - Data collection tasks (platform-specific scrapers)
-   - Content analysis tasks (sentiment, topic modeling)
-   - Embedding generation tasks
-   - Alert generation tasks
+### Task 4.2: Implement Data Collection Tasks
+Create tasks for scraping social media platforms:
+- TwitterScraper
+- FacebookScraper
+- InstagramScraper
+- TikTokScraper
 
-3. **Implement Kafka Stream Processors**
-   - Stream processors for real-time monitoring
-   - Topic configuration for entity mentions, sentiment changes
-   - Consumer implementation for alerts
+### Task 4.3: Implement Analysis Tasks
+Create tasks for content analysis:
+- SentimentAnalysisTask
+- TopicModelingTask
+- EntityRecognitionTask
+- RelationshipAnalysisTask
 
-## Phase 5: Integration and Testing
+### Task 4.4: Implement Vector Embedding Tasks
+Create tasks for generating embeddings:
+- TextEmbeddingTask
+- RelationshipEmbeddingTask
 
-1. **Build Cross-Database Services**
-   - Social media monitoring service
-   - Entity relationship analysis service
-   - Content similarity service
+### Task 4.5: Setup Kafka Stream Processors
+Implement Kafka producers and consumers:
+- RawContentProducer
+- EntityMentionConsumer
+- SentimentChangeConsumer
+- EngagementMetricsConsumer
 
-2. **Create Test Data and Fixtures**
-   - Test data for each database
-   - Integration test scenarios
-   - Performance benchmarks
+## Phase 5: NLP and ML Pipeline Implementation
 
-3. **Implement API Endpoints**
-   - Entity management endpoints
-   - Content search and analysis endpoints
-   - Analytics dashboard endpoints
+### Task 5.1: Set up NLP Models
+Initialize and configure NLP models:
+- spaCy pipeline for entity recognition
+- Transformer models for sentiment analysis
+- Sentence transformers for embeddings
 
-## Implementation Order
+### Task 5.2: Implement Sentiment Analysis
+Create sentiment analysis pipeline:
+- Text preprocessing
+- Sentiment scoring
+- Emotional tone classification
 
-1. Start with basic PostgreSQL models and repositories
-2. Add MongoDB integration for posts and comments
-3. Implement Redis for caching and real-time features
-4. Add vector database functionality for semantic analysis
-5. Set up Celery and Kafka for processing pipelines
+### Task 5.3: Implement Topic Modeling
+Create topic modeling pipeline:
+- Text preprocessing
+- Topic extraction
+- Topic categorization
 
-## Testing Strategy
+### Task 5.4: Implement Entity Recognition
+Create entity recognition pipeline:
+- Named entity recognition
+- Entity linking to database
+- Relationship extraction
 
-- Unit test each repository layer individually
-- Integration tests for cross-database operations
-- Load testing for performance-critical components
-- End-to-end tests for complete workflows
+### Task 5.5: Implement Vector Embedding Generation
+Create embedding pipeline:
+- Text preprocessing
+- Embedding generation
+- Vector storage and indexing
+
+## Phase 6: API Endpoint Implementation
+
+### Task 6.1: Implement Entity Management Endpoints
+Create endpoints for entity management:
+- CRUD operations for political entities
+- Social media account management
+- Relationship management
+
+### Task 6.2: Implement Content Search Endpoints
+Create endpoints for content search:
+- Text search across platforms
+- Advanced filtering options
+- Semantic similarity search
+
+### Task 6.3: Implement Analytics Endpoints
+Create endpoints for analytics:
+- Sentiment analysis results
+- Topic distribution
+- Engagement metrics
+- Relationship graphs
+
+### Task 6.4: Implement Real-time Monitoring Endpoints
+Create endpoints for real-time monitoring:
+- Activity streams
+- Alert configuration
+- Trend detection
+
+## Phase 7: Testing and Integration
+
+### Task 7.1: Create Unit Tests
+Develop unit tests for:
+- Repository layer
+- Service layer
+- Task processing
+- NLP components
+
+### Task 7.2: Create Integration Tests
+Develop integration tests for:
+- Cross-database operations
+- Task queue processing
+- Stream processing
+
+### Task 7.3: Create Performance Tests
+Develop performance tests for:
+- Database query performance
+- Task processing throughput
+- API endpoint response times
+
+### Task 7.4: Create End-to-End Tests
+Develop end-to-end tests for:
+- Complete data processing pipeline
+- API endpoint workflows
+
+## Phase 8: Documentation and Deployment
+
+### Task 8.1: Update API Documentation
+Update OpenAPI documentation for:
+- New endpoints
+- Request/response models
+- Authentication requirements
+
+### Task 8.2: Create Technical Documentation
+Create documentation for:
+- Architecture overview
+- Database schema
+- Task processing workflow
+- NLP pipeline
+
+### Task 8.3: Create Deployment Scripts
+Create scripts for:
+- Database initialization
+- Initial data seeding
+- Environment provisioning
+
+### Task 8.4: Create Monitoring Setup
+Configure monitoring for:
+- Application performance
+- Database health
+- Task queue status
+- Stream processing lag
+
+## Implementation Sequence
+
+1. Start with dependency and environment setup (Phase 1)
+2. Implement core database infrastructure (Phase 2)
+3. Create repository and service layers (Phase 3)
+4. Set up task processing framework (Phase 4)
+5. Build NLP and ML pipelines (Phase 5)
+6. Develop API endpoints (Phase 6)
+7. Implement testing (Phase 7)
+8. Finalize documentation and deployment (Phase 8)
+
+By following this implementation plan, the application will align with the specified technical stack in the documentation, including the hybrid database architecture and advanced data processing capabilities required for the Political Social Media Analysis Platform.

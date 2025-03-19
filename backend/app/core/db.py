@@ -34,4 +34,4 @@ def init_db(session: Session) -> None:
             is_superuser=True,
         )
         # Updated to use the new repository pattern
-        user = user_service.create_user(session=session, obj_in=user_in)
+        user = user_service.create_user(session=session, user_create=user_in)

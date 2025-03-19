@@ -23,10 +23,10 @@ dependencies = [
     "pyjwt<3.0.0,>=2.8.0",
     
     # Database Clients
-    "motor<3.3.0,>=3.2.0",         # MongoDB async driver
-    "pymongo<5.0.0,>=4.5.0",       # MongoDB sync driver
+    "motor==2.5.1",                # MongoDB async driver (for use with pymongo 3.12.x)
+    "pymongo==3.12.0",            # MongoDB sync driver (downgraded to 3.x series)
     "redis<5.0.0,>=4.6.0",         # Redis client
-    "pinecone-client<3.0.0,>=2.2.1", # Pinecone vector DB client
+    "pinecone-client==2.2.1",      # Pinecone vector DB client (fixed at 2.2.1)
     
     # Task Processing
     "celery<6.0.0,>=5.3.0",        # Task queue

@@ -12,7 +12,7 @@ from typing import AsyncGenerator, Optional
 from functools import lru_cache
 
 import motor.motor_asyncio
-from pinecone import Pinecone, Index
+import pinecone
 import redis.asyncio as redis
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -120,30 +120,30 @@ class PineconeConnection:
     
     def __init__(self) -> None:
         """Initialize Pinecone connection manager."""
-        self._client: Optional[Pinecone] = None
-        self._index: Optional[Index] = None
+        self._client = None
+        self._index = None
 
     def connect(self) -> None:
         """Initialize Pinecone connection and ensure index exists."""
         try:
             # Initialize Pinecone client
-            self._client = Pinecone(api_key=settings.PINECONE_API_KEY)
+            pinecone.init(api_key=settings.PINECONE_API_KEY)
             
             # Create index if it doesn't exist
-            if settings.PINECONE_INDEX_NAME not in self._client.list_indexes().names():
-                self._client.create_index(
+            if settings.PINECONE_INDEX_NAME not in pinecone.list_indexes():
+                pinecone.create_index(
                     name=settings.PINECONE_INDEX_NAME,
                     dimension=384,  # Dimension for all-MiniLM-L6-v2 embeddings
                     metric="cosine"
                 )
             
             # Get the index
-            self._index = self._client.Index(settings.PINECONE_INDEX_NAME)
+            self._index = pinecone.Index(settings.PINECONE_INDEX_NAME)
         except Exception as e:
             raise ConnectionError(f"Failed to initialize Pinecone: {e}")
 
     @property
-    def index(self) -> Index:
+    def index(self):
         """Get the Pinecone index instance."""
         if self._index is None:
             raise ConnectionError("Pinecone connection not initialized")
@@ -153,8 +153,7 @@ class PineconeConnection:
         """Clean up Pinecone resources."""
         if self._index is not None:
             self._index = None
-        if self._client is not None:
-            self._client = None
+        pinecone.deinit()  # Close connection properly
 
 
 # Singleton instances
@@ -186,7 +185,7 @@ async def get_redis() -> AsyncGenerator[redis.Redis, None]:
 
 
 @lru_cache()
-def get_pinecone() -> Index:
+def get_pinecone():
     """Get Pinecone index instance with caching."""
     if pinecone_conn._index is None:
         pinecone_conn.connect()

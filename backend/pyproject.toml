@@ -23,8 +23,8 @@ dependencies = [
     "pyjwt<3.0.0,>=2.8.0",
     
     # Database Clients
-    "motor<3.3.0,>=3.2.0",         # MongoDB async driver
-    "pymongo<5.0.0,>=4.5.0",       # MongoDB sync driver
+    "motor==3.3.2",                # MongoDB async driver (fixed version for compatibility)
+    "pymongo==4.5.0",              # MongoDB sync driver (fixed version for compatibility)
     "redis<5.0.0,>=4.6.0",         # Redis client
     "pinecone-client<3.0.0,>=2.2.1", # Pinecone vector DB client
     

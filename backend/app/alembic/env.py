@@ -20,7 +20,7 @@ fileConfig(config.config_file_name)
 
 # Updated import for new architecture
 from sqlmodel import SQLModel  # noqa
-from app.db.models import user, item  # Import all models to register them
+import app.db.models
 from app.core.config import settings # noqa
 
 target_metadata = SQLModel.metadata

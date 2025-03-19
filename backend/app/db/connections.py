@@ -12,7 +12,8 @@ from typing import AsyncGenerator, Optional
 from functools import lru_cache
 
 import motor.motor_asyncio
-from pinecone import Pinecone, Index
+import pinecone
+from pinecone import Index
 import redis.asyncio as redis
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -120,25 +121,24 @@ class PineconeConnection:
     
     def __init__(self) -> None:
         """Initialize Pinecone connection manager."""
-        self._client: Optional[Pinecone] = None
         self._index: Optional[Index] = None
 
     def connect(self) -> None:
         """Initialize Pinecone connection and ensure index exists."""
         try:
             # Initialize Pinecone client
-            self._client = Pinecone(api_key=settings.PINECONE_API_KEY)
+            pinecone.init(api_key=settings.PINECONE_API_KEY)
             
             # Create index if it doesn't exist
-            if settings.PINECONE_INDEX_NAME not in self._client.list_indexes().names():
-                self._client.create_index(
+            if settings.PINECONE_INDEX_NAME not in pinecone.list_indexes():
+                pinecone.create_index(
                     name=settings.PINECONE_INDEX_NAME,
                     dimension=384,  # Dimension for all-MiniLM-L6-v2 embeddings
                     metric="cosine"
                 )
             
             # Get the index
-            self._index = self._client.Index(settings.PINECONE_INDEX_NAME)
+            self._index = pinecone.Index(settings.PINECONE_INDEX_NAME)
         except Exception as e:
             raise ConnectionError(f"Failed to initialize Pinecone: {e}")
 
@@ -153,8 +153,6 @@ class PineconeConnection:
         """Clean up Pinecone resources."""
         if self._index is not None:
             self._index = None
-        if self._client is not None:
-            self._client = None
 
 
 # Singleton instances

@@ -125,32 +125,35 @@ def check_pinecone() -> Dict[str, bool]:
 @app.on_event("startup")
 async def startup_db_client() -> None:
     """Initialize database connections on application startup."""
+    # MongoDB connection
     try:
-        # Initialize MongoDB (async)
         logger.info("Connecting to MongoDB...")
         await mongodb.connect()
         logger.info("Successfully connected to MongoDB")
+    except Exception as e:
+        logger.warning(f"Failed to connect to MongoDB: {e}")
+        # Continue without raising the exception
 
-        # Initialize Redis (async)
+    # Redis connection
+    try:
         logger.info("Connecting to Redis...")
         await redis_conn.connect()
         logger.info("Successfully connected to Redis")
-
-        # Initialize Pinecone (sync) - optional
-        if settings.PINECONE_API_KEY:
-            logger.info("Connecting to Pinecone...")
-            try:
-                pinecone_conn.connect()
-                logger.info("Successfully connected to Pinecone")
-            except Exception as e:
-                logger.warning(f"Failed to connect to Pinecone: {e}")
-        else:
-            logger.warning("Skipping Pinecone connection - API key not provided")
-
     except Exception as e:
-        logger.error(f"Error during database initialization: {e}")
-        # Re-raise the exception to prevent the application from starting with failed connections
-        raise
+        logger.warning(f"Failed to connect to Redis: {e}")
+        # Continue without raising the exception
+
+    # Pinecone connection (optional)
+    if settings.PINECONE_API_KEY:
+        try:
+            logger.info("Connecting to Pinecone...")
+            pinecone_conn.connect()
+            logger.info("Successfully connected to Pinecone")
+        except Exception as e:
+            logger.warning(f"Failed to connect to Pinecone: {e}")
+            # Continue without raising the exception
+    else:
+        logger.warning("Skipping Pinecone connection - API key not provided")
 
 
 @app.on_event("shutdown")

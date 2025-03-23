@@ -41,6 +41,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
 
 # Install all required dependencies directly
-RUN pip install celery==5.3.0 flower==1.2.0 redis==4.6.0 pydantic>=2.0 pydantic-settings>=2.0 fastapi>=0.114.2 pymongo>=4.5.0 motor>=3.2.0
+# Using compatible versions of PyMongo and Motor to avoid the _QUERY_OPTIONS import error
+RUN pip install celery==5.3.0 flower==1.2.0 redis==4.6.0 pydantic>=2.0 pydantic-settings>=2.0 fastapi>=0.114.2 pymongo==4.5.0 motor==3.3.2
 
 CMD ["fastapi", "run", "--workers", "4", "app/main.py"]

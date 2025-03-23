@@ -13,6 +13,7 @@ from functools import lru_cache
 
 import motor.motor_asyncio
 import pinecone
+from pinecone import Index
 import redis.asyncio as redis
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -120,8 +121,7 @@ class PineconeConnection:
     
     def __init__(self) -> None:
         """Initialize Pinecone connection manager."""
-        self._client = None
-        self._index = None
+        self._index: Optional[Index] = None
 
     def connect(self) -> None:
         """Initialize Pinecone connection and ensure index exists."""
@@ -153,7 +153,6 @@ class PineconeConnection:
         """Clean up Pinecone resources."""
         if self._index is not None:
             self._index = None
-        pinecone.deinit()  # Close connection properly
 
 
 # Singleton instances
